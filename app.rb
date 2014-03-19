@@ -1,64 +1,43 @@
 # encoding: utf-8
 
-require 'bundler/setup'
-require 'sinatra/base'
-require 'slim'
-require 'sass'
-require 'coffee-script'
-require 'rack-flash'
+# basic gems -------------------------------------------------------------------
+require 'rubygems'
+require 'bundler'
+
+# require bundler gems ---------------------------------------------------------
+Bundler.require
+
+# additional gems --------------------------------------------------------------
+require 'set'
+require 'hashie'
 require 'sinatra/asset_pipeline'
 
-# hack for ruby < 2.0.0
-__dir__ = File.dirname(__FILE__)
+# sinatra ----------------------------------------------------------------------
+require 'sinatra/base'
 
-# !!! SET HERE YOUR APP NAME !!!
-MY_APP_NAME = 'MyApp'
-
-# do magic with app name :)
-Object.const_set(MY_APP_NAME, Module.new {})
-MY_APP = Kernel.const_get(MY_APP_NAME)
-
-module MY_APP
+# app settings -----------------------------------------------------------------
+module ContactSyncer
   class App < Sinatra::Base
-    enable :sessions, :logging
-
-    # Include these files when precompiling assets
-    set :assets_precompile, %w(*.js *.css *.png *.jpg *.svg *.eot *.ttf *.woff)
-    # CSS minification
-    set :assets_css_compressor, :sass
-    # JavaScript minification
-    set :assets_js_compressor, :uglifier
-    # Logical path to your assets
-    set :assets_prefix, 'views/assets'
+    set :assets_prefix, %w(assets)
+    set :assets_precompile, %w(*.js *.css *.sass)
     register Sinatra::AssetPipeline
 
-    use Rack::MethodOverride
-    use Rack::Flash, :accessorize => [:info, :error, :success], :sweep => true
-    use Rack::Protection::AuthenticityToken
-    set :root, __dir__
-    set :public_folder, __dir__ + '/public'
-    set :views, __dir__ + '/views'
-    set :session_secret, 'SomeV3ryS3cretC0deAndYouSh0uldProbablyChangeTh1s:)'
-    set :slim, :layout_engine => :slim, :layout => :'layouts/application',
-      :use_html_safe => true, :pretty => App.environment == :development
-    set :cookie_options, { path: '/'}
-
-    configure :development do
-      require "sinatra/reloader"
-      register Sinatra::Reloader
-      also_reload 'models/**/*.rb'
-      also_reload 'lib/**/*.rb'
-      also_reload 'helpers/**/*.rb'
-      also_reload 'routes/**/*.rb'
-      set :raise_errors, true
-    end
-
+    set :root, File.absolute_path(File.dirname(__FILE__))
   end
 end
 
-# require all necessary files - NASTY code, I know :)
-['lib', 'models', 'helpers', 'routes'].each do |dir|
-  Dir.glob("#{__dir__}/#{dir}/*.rb").each {|file| require_relative file.to_s }
+# require models, routes etc. --------------------------------------------------
+['models', 'routes'].each do |dir|
+  Dir.glob("#{File.dirname(__FILE__)}/#{dir}/**/*.rb").each do |file|
+    require file
+  end
 end
 
-
+# app main ---------------------------------------------------------------------
+module ContactSyncer
+  class App < Sinatra::Base
+    get '/' do
+      slim :index
+    end
+  end
+end
