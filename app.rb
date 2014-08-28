@@ -16,7 +16,7 @@ require 'sinatra/asset_pipeline'
 require 'sinatra/base'
 
 # app settings -----------------------------------------------------------------
-module ContactSyncer
+module MyApp
   class App < Sinatra::Base
     set :assets_prefix, %w(assets)
     set :assets_precompile, %w(*.js *.css *.sass)
@@ -34,7 +34,7 @@ end
 end
 
 # app main ---------------------------------------------------------------------
-module ContactSyncer
+module MyApp
   class App < Sinatra::Base
     get '/' do
       slim :index
